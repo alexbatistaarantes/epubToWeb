@@ -6,6 +6,9 @@ import sys
 
 newFilesDirName = 'pages'
 
+# ABSOLUTE (Abs) PATHS: from this Python file 'perspective'
+# NOT ABSOLUTE: from the folder of the new book 'perspective'. It's used for href in links
+
 class Book():
 	
 	def __init__(self, filesPath, newBookPath):
@@ -32,25 +35,34 @@ class Book():
 		<title> Book </title>
 	</head>
 	<body>
-		<button onclick="increaseWidth(-10)"> Decrease Width 10% </button>
-		<button onclick="increaseWidth(10)"> Increase Width 10% </button>
-		<button onclick="increaseHeight(-20)"> Decrease Height 20px </button>
-		<button onclick="increaseHeight(20)"> Increase Height 20px </button>
+		<button onclick="increaseWidth(-50)"> Decrease Width 50px </button>
+		<button onclick="increaseWidth(50)"> Increase Width 50px </button>
+		<button onclick="increaseHeight(-50)"> Decrease Height 50px </button>
+		<button onclick="increaseHeight(50)"> Increase Height 50px </button>
 		<br><br>
-		<iframe id="book" src="bookIndex.html" frameborder="0" style="width: 50%; height: 300px;"></iframe>
+		<iframe id="book" src="bookIndex.html" frameborder="0"></iframe>
 	</body>
 	<script type="text/javascript">
 		function increaseWidth(size){
-			var width = parseInt(document.getElementById('book').style.width);
+			var width = document.getElementById('book').clientWidth;
 			width += size;
-			document.getElementById('book').style.width = width.toString() + '%';
+			document.getElementById('book').style.width = width.toString() + 'px';
 		}
 		function increaseHeight(size){
-			var height = parseInt(document.getElementById('book').style.height);
+			var height = document.getElementById('book').clientHeight;
 			height += size;
 			document.getElementById('book').style.height = height.toString() + 'px';
 		}
 	</script>
+	<style>
+		#book {
+			width: 50%;
+			height: 500px;
+
+			display: block;
+			margin: 0 auto;
+		}
+	</style>
 
 	</html>
 """
@@ -72,15 +84,19 @@ class Book():
 """
 		bookIndexSoup = BeautifulSoup( bookIndexContent, 'html.parser' )
 		
+		# Iterating over book files (chapters)
 		for fileIndex in range(0, self.filesLen) :
 			fileName = self.files[fileIndex].name
+			# Absolute path from this python file
 			newFileAbsPath = path.join( self.newFilesAbsPath, fileName )
-
+			
+			# Creating a copy of the file to the new book
 			newFile = open( newFileAbsPath, 'w' )
 			newFileContent = self.addPageLinks( fileIndex )
 			newFile.write( newFileContent )
-			
+						
 			newFilePath = path.join( newFilesDirName, fileName )
+			# Link Tag from this chapter in the book index
 			newFileIndexTag = bookIndexSoup.new_tag('a', href=newFilePath )
 			newFileIndexTag.string = fileName
 			bookIndexSoup.find(id="bookIndex").append( newFileIndexTag )
