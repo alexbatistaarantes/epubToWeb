@@ -1,8 +1,14 @@
 #!/bin/env python3
 
 from bs4 import BeautifulSoup
-from os import path, scandir, listdir, mkdir
+from os import path, getcwd, scandir, listdir, mkdir
 import sys
+
+## to extract epub content
+## epub = zipFile.ZipFile('epubpath')
+## epub.extractall()
+
+__location__ = path.realpath( path.join(getcwd(), path.dirname(__file__)))
 
 class Book():
 	
@@ -10,7 +16,7 @@ class Book():
 	# path: path from within folder. Used from <a> tags from the html files
 	# AbsPath (absolute path): absolute file. Used for this code purpose
 
-	def __init__(self, filesAbsPath, newBookPath):
+	def __init__(self, filesAbsPath, newBookAbsPath):
 		
 		self.files = [] # files from scandir of old files
 		self.filesLen = 0 
@@ -28,12 +34,12 @@ class Book():
 	
 	def createNewBook(self):
 		
-		with open( 'book.html', 'r' ) as bookFile:
+		with open( path.join( __location__, 'book.html'), 'r' ) as bookFile:
 			newBookFile = open( path.join( self.newBookAbsPath, 'book.html' ), 'w' )
 			newBookFile.write( bookFile.read() )
 			newBookFile.close()
 		
-		with open( 'bookIndex.html', 'r' ) as bookIndexFile:
+		with open( path.join( __location__, 'bookIndex.html'), 'r' ) as bookIndexFile:
 			bookIndexContent = bookIndexFile.read()
 
 		bookIndexSoup = BeautifulSoup( bookIndexContent, 'html.parser' )
@@ -46,18 +52,18 @@ class Book():
 			
 			# Creating a copy of the file to the new book
 			newFile = open( newFileAbsPath, 'w' )
-			newFileContent = self.addPageLinks( fileIndex )
+			newFileContent, fileTitle = self.addPageLinks( fileIndex )
 			newFile.write( newFileContent )
 						
 			newFilePath = path.join( 'pages', fileName )
 			# Link Tag from this chapter in the book index
 			newFileIndexTag = bookIndexSoup.new_tag('a', href=newFilePath )
-			newFileIndexTag.string = fileName
+			newFileIndexTag.string = fileTitle
 			bookIndexSoup.find(id="bookIndex").append( newFileIndexTag )
 			brTag = bookIndexSoup.new_tag('br')
 			bookIndexSoup.find(id='bookIndex').append( brTag )
 
-		with open( path.join( self.newBookPath, 'bookIndex.html'), 'w' ) as bookIndexFile:
+		with open( path.join( self.newBookAbsPath, 'bookIndex.html'), 'w' ) as bookIndexFile:
 			bookIndexFile.write( bookIndexSoup.prettify() )
 
 
@@ -121,7 +127,9 @@ class Book():
 		pageSoup.find(id='topNavigationLinks').insert(0, indexPageTopTag)
 		pageSoup.find(id='bottomNavigationLinks').append(indexPageBottomTag)
 
-		return pageSoup.prettify()
+		pageTitle = pageSoup.find('title').string
+
+		return pageSoup.prettify(), pageTitle
 
 	def getFiles(self):
 		try:
@@ -132,12 +140,13 @@ class Book():
 			return 0
 	def createNewBookDir(self):
 		try:
-			mkdir( self.newBookPath )
+			mkdir( self.newBookAbsPath )
 		except FileExistsError:
 			raise ValueError("The folder already exist.")
 		except:
 			return 0
-		self.newFilesAbsPath = path.join( self.newBookPath, 'pages' )
+		self.newFilesAbsPath = path.join( self.newBookAbsPath, 'pages' )
+		mkdir( self.newFilesAbsPath )
 
 		return 1
 
@@ -145,6 +154,7 @@ if __name__ == '__main__':
 
 	if( len(sys.argv) == 3 ):
 		book = Book( sys.argv[1], sys.argv[2] )
+		pass
 	else:
 		print("""
 	main.py HTML_FILES_PATH NEW_BOOK_PATH
