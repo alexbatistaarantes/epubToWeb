@@ -3,7 +3,7 @@
 from bs4 import BeautifulSoup
 from os import path, scandir, listdir, mkdir
 import sys
-
+# teste
 newFilesDirName = 'pages'
 
 BOOKINDEX_HTML =
