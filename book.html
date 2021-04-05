@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title> Book </title>
+</head>
+<body>
+	
+	<div id="controlPanel">
+		<button onclick="increaseWidth(-50)"> Decrease Width 50px </button>
+		<button onclick="increaseWidth(50)"> Increase Width 50px </button>
+		<br>
+		<button onclick="increaseHeight(-50)"> Decrease Height 50px </button>
+		<button onclick="increaseHeight(50)"> Increase Height 50px </button>
+	</div>	
+	<br><br>
+
+		<iframe id="book" src="bookIndex.html" frameborder="0"></iframe>
+</body>
+
+<script type="text/javascript">
+	function increaseWidth(size){
+		var width = document.getElementById('book').clientWidth;
+		width += size;
+		document.getElementById('book').style.width = width.toString() + 'px';
+	}
+	function increaseHeight(size){
+		var height = document.getElementById('book').clientHeight;
+		height += size;
+		document.getElementById('book').style.height = height.toString() + 'px';
+	}
+</script>
+
+<style>
+	#book {
+		width: 50%;
+		height: 500px;
+
+		display: block;
+		margin: 0 auto;
+	}
+</style>
+
+</html>

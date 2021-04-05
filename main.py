@@ -6,72 +6,25 @@ import sys
 
 newFilesDirName = 'pages'
 
-# ABSOLUTE (Abs) PATHS: from this Python file 'perspective'
-# NOT ABSOLUTE: from the folder of the new book 'perspective'. It's used for href in links
-
-BOOK_HTML = """
-	<!DOCTYPE html>
-	<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<title> Book </title>
-	</head>
-	<body>
-		<button onclick="increaseWidth(-50)"> Decrease Width 50px </button>
-		<button onclick="increaseWidth(50)"> Increase Width 50px </button>
-		<button onclick="increaseHeight(-50)"> Decrease Height 50px </button>
-		<button onclick="increaseHeight(50)"> Increase Height 50px </button>
-		<br><br>
-		<iframe id="book" src="bookIndex.html" frameborder="0"></iframe>
-	</body>
-	<script type="text/javascript">
-		function increaseWidth(size){
-			var width = document.getElementById('book').clientWidth;
-			width += size;
-			document.getElementById('book').style.width = width.toString() + 'px';
-		}
-		function increaseHeight(size){
-			var height = document.getElementById('book').clientHeight;
-			height += size;
-			document.getElementById('book').style.height = height.toString() + 'px';
-		}
-	</script>
-	<style>
-		#book {
-			width: 50%;
-			height: 500px;
-
-			display: block;
-			margin: 0 auto;
-		}
-	</style>
-
-	</html>
-"""
-BOOKINDEX_HTML = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="UTF-8">
-	<title> Book Index </title>
-</head>
-<body>
-	<div id="bookIndex">
-		
-	</div>
-</body>
-</html>
-"""
+BOOKINDEX_HTML =
 
 class Book():
 	
-	def __init__(self, filesPath, newBookPath):
+	# files: xhtml files of the book
+	# path: path from within folder. Used from <a> tags from the html files
+	# AbsPath (absolute path): absolute file. Used for this code purpose
+
+	def __init__(self, filesAbsPath, newBookPath):
 		
-		self.filesPath = filesPath
+		self.files = [] # files from scandir of old files
+		self.filesLen = 0 
+		self.newFilesAbsPath = '' # new files (xhtml) absolute path
+
+		self.filesAbsPath = filesAbsPath # path of old files
 		if( self.getFiles() == 0 ):
 			raise ValueError("Couldn't access the file's directory.")
 		
-		self.newBookPath = newBookPath
+		self.newBookAbsPath = newBookAbsPath
 		if( self.createNewBookDir() == 0 ):
 			raise ValueError("Couldn't create the new book's directory.")
 
@@ -79,14 +32,17 @@ class Book():
 	
 	def createNewBook(self):
 		
-		with open( path.join(self.newBookPath, 'book.html'), 'w') as book:
-			book.write( BOOK_HTML )
-
-		bookIndexContent = BOOKINDEX_HTML
+		with open( 'book.html', 'r' ) as bookFile:
+			newBookFile = open( path.join( self.newBookAbsPath, 'book.html' ), 'w' )
+			newBookFile.write( bookFile.read() )
+			newBookFile.close()
+		
+		with open( 'bookIndex.html', 'r' ) as bookIndexFile:
+			bookIndexContent = bookIndexFile.read()
 
 		bookIndexSoup = BeautifulSoup( bookIndexContent, 'html.parser' )
 		
-		# Iterating over book files (chapters)
+		# Iterating over book files
 		for fileIndex in range(0, self.filesLen) :
 			fileName = self.files[fileIndex].name
 			# Absolute path from this python file
@@ -105,8 +61,9 @@ class Book():
 			brTag = bookIndexSoup.new_tag('br')
 			bookIndexSoup.find(id='bookIndex').append( brTag )
 
-		with open( path.join( self.newBookPath, 'bookIndex.html'), 'w' ) as bookIndex:
-			bookIndex.write( bookIndexSoup.prettify() )
+		with open( path.join( self.newBookPath, 'bookIndex.html'), 'w' ) as bookIndexFile:
+			bookIndexFile.write( bookIndexSoup.prettify() )
+
 
 	def addPageLinks(self, fileIndex):
 		
@@ -172,7 +129,7 @@ class Book():
 
 	def getFiles(self):
 		try:
-			self.files = sorted( scandir( self.filesPath ), key=lambda x: (x.is_dir(), x.name) )
+			self.files = sorted( scandir( self.filesAbsPath ), key=lambda x: (x.is_dir(), x.name) )
 			self.filesLen = len( self.files )
 			return 1
 		except:
