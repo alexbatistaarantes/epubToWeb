@@ -4,10 +4,6 @@ from bs4 import BeautifulSoup
 from os import path, scandir, listdir, mkdir
 import sys
 
-newFilesDirName = 'pages'
-
-BOOKINDEX_HTML =
-
 class Book():
 	
 	# files: xhtml files of the book
@@ -53,7 +49,7 @@ class Book():
 			newFileContent = self.addPageLinks( fileIndex )
 			newFile.write( newFileContent )
 						
-			newFilePath = path.join( newFilesDirName, fileName )
+			newFilePath = path.join( 'pages', fileName )
 			# Link Tag from this chapter in the book index
 			newFileIndexTag = bookIndexSoup.new_tag('a', href=newFilePath )
 			newFileIndexTag.string = fileName
@@ -138,15 +134,10 @@ class Book():
 		try:
 			mkdir( self.newBookPath )
 		except FileExistsError:
-			pass
+			raise ValueError("The folder already exist.")
 		except:
 			return 0
-
-		self.newFilesAbsPath = path.join( self.newBookPath, newFilesDirName )
-		try:
-			mkdir( self.newFilesAbsPath )
-		except:
-			raise ValueError("Please delete the "+ self.newFilesAbsPath +" folder.")
+		self.newFilesAbsPath = path.join( self.newBookPath, 'pages' )
 
 		return 1
 
