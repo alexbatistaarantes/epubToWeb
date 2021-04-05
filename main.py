@@ -115,9 +115,25 @@ class Book():
 			fileContent = filePage.read()
 		
 		pageSoup = BeautifulSoup( fileContent, 'html.parser')
-	
+		
+		increaseFontButton = pageSoup.new_tag('button', onclick="increaseFont(5)")
+		increaseFontButton.string = "Increase Font"
+		decreaseFontButton = pageSoup.new_tag('button', onclick="increaseFont(-5)")
+		decreaseFontButton.string = "Decrease Font"
+		pageSoup.body.insert(0, increaseFontButton)
+		pageSoup.body.insert(1, decreaseFontButton)
+
+		scriptFontTag = pageSoup.new_tag('script', type='text/javascript')
+		scriptFontTag.string = """
+	function increaseFont(size){
+		size = parseInt( window.getComputedStyle( document.getElementsByTagName('body')[0] )['font-size'] ) + size;
+		document.getElementsByTagName('body')[0].style.fontSize = size.toString()+'px';
+	}
+"""		
+		pageSoup.body.insert_after( scriptFontTag )
+		
 		topNavLinksTag = pageSoup.new_tag('div', id='topNavigationLinks')
-		pageSoup.body.insert(1, topNavLinksTag )
+		pageSoup.body.insert(2, topNavLinksTag )
 		bottomNavLinksTag = pageSoup.new_tag('div', id='bottomNavigationLinks')
 		pageSoup.body.append( bottomNavLinksTag )
 
