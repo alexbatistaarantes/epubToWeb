@@ -9,25 +9,7 @@ newFilesDirName = 'pages'
 # ABSOLUTE (Abs) PATHS: from this Python file 'perspective'
 # NOT ABSOLUTE: from the folder of the new book 'perspective'. It's used for href in links
 
-class Book():
-	
-	def __init__(self, filesPath, newBookPath):
-		
-		self.filesPath = filesPath
-		if( self.getFiles() == 0 ):
-			raise ValueError("Couldn't access the file's directory.")
-		
-		self.newBookPath = newBookPath
-		if( self.createNewBookDir() == 0 ):
-			raise ValueError("Couldn't create the new book's directory.")
-
-		self.createNewBook()
-	
-	def createNewBook(self):
-		
-		with open( path.join(self.newBookPath, 'book.html'), 'w') as book:
-			book.write(
-"""
+BOOK_HTML = """
 	<!DOCTYPE html>
 	<html lang="en">
 	<head>
@@ -66,9 +48,7 @@ class Book():
 
 	</html>
 """
-			)
-
-		bookIndexContent = """
+BOOKINDEX_HTML = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -82,6 +62,28 @@ class Book():
 </body>
 </html>
 """
+
+class Book():
+	
+	def __init__(self, filesPath, newBookPath):
+		
+		self.filesPath = filesPath
+		if( self.getFiles() == 0 ):
+			raise ValueError("Couldn't access the file's directory.")
+		
+		self.newBookPath = newBookPath
+		if( self.createNewBookDir() == 0 ):
+			raise ValueError("Couldn't create the new book's directory.")
+
+		self.createNewBook()
+	
+	def createNewBook(self):
+		
+		with open( path.join(self.newBookPath, 'book.html'), 'w') as book:
+			book.write( BOOK_HTML )
+
+		bookIndexContent = BOOKINDEX_HTML
+
 		bookIndexSoup = BeautifulSoup( bookIndexContent, 'html.parser' )
 		
 		# Iterating over book files (chapters)
@@ -122,24 +124,33 @@ class Book():
 		# PREVIOUS PAGE LINK
 		previousFileIndex = fileIndex - 1
 		if( previousFileIndex >= 0 ):
-			previousPageTag = pageSoup.new_tag('a', href=self.files[previousFileIndex].name )
-			previousPageTag.string = '  Previous chapter  '
-			pageSoup.find(id='topNavigationLinks').append(previousPageTag)
-			pageSoup.find(id='bottomNavigationLinks').append( previousPageTag )
+			previousPageTopTag = pageSoup.new_tag('a', href=self.files[previousFileIndex].name )
+			previousPageTopTag.string = '  Previous chapter  '
+
+			previousPageBottomTag = pageSoup.new_tag('a', href=self.files[previousFileIndex].name )
+			previousPageBottomTag.string = '  Previous chapter  '
+
+			pageSoup.find(id='topNavigationLinks').append(previousPageTopTag)
+			pageSoup.find(id='bottomNavigationLinks').append( previousPageBottomTag )
 
 		# NEXT PAGE LINK
 		nextFileIndex = fileIndex + 1
 		if( nextFileIndex < self.filesLen ):
-			nextPageTag = pageSoup.new_tag('a', href=self.files[nextFileIndex].name )
-			nextPageTag.string = '  Next chapter  '
-			pageSoup.find(id='topNavigationLinks').append( nextPageTag )
-			pageSoup.find(id='bottomNavigationLinks').append( nextPageTag )
+			nextPageTopTag = pageSoup.new_tag('a', href=self.files[nextFileIndex].name )
+			nextPageTopTag.string = '  Next chapter  '
+			nextPageBottomTag = pageSoup.new_tag('a', href=self.files[nextFileIndex].name )
+			nextPageBottomTag.string = '  Next chapter  '
+
+			pageSoup.find(id='topNavigationLinks').append( nextPageTopTag )
+			pageSoup.find(id='bottomNavigationLinks').append( nextPageBottomTag )
 		
 		# INDEX PAGE LINK
-		indexPageTag = pageSoup.new_tag('a', href='../bookIndex.html')
-		indexPageTag.string = "  Book Index  "
-		pageSoup.find(id='topNavigationLinks').insert(0, indexPageTag)
-		pageSoup.find(id='bottomNavigationLinks').append(indexPageTag)
+		indexPageTopTag = pageSoup.new_tag('a', href='../bookIndex.html')
+		indexPageTopTag.string = "  Book Index  "
+		indexPageBottomTag = pageSoup.new_tag('a', href='../bookIndex.html')
+		indexPageBottomTag.string = "  Book Index  "
+		pageSoup.find(id='topNavigationLinks').insert(0, indexPageTopTag)
+		pageSoup.find(id='bottomNavigationLinks').append(indexPageBottomTag)
 
 		return pageSoup.prettify()
 
