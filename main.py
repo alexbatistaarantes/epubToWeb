@@ -116,9 +116,9 @@ class Book():
 		
 		pageSoup = BeautifulSoup( fileContent, 'html.parser')
 		
-		increaseFontButton = pageSoup.new_tag('button', onclick="increaseFont(5)")
+		increaseFontButton = pageSoup.new_tag('button', onclick="increaseFont(5)", style="position: sticky; top: 0;")
 		increaseFontButton.string = "Increase Font"
-		decreaseFontButton = pageSoup.new_tag('button', onclick="increaseFont(-5)")
+		decreaseFontButton = pageSoup.new_tag('button', onclick="increaseFont(-5)", style="position: sticky; top: 0;")
 		decreaseFontButton.string = "Decrease Font"
 		pageSoup.body.insert(0, increaseFontButton)
 		pageSoup.body.insert(1, decreaseFontButton)
