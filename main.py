@@ -154,7 +154,9 @@ if __name__ == '__main__':
 
 	if( len(sys.argv) == 3 ):
 		book = Book( sys.argv[1], sys.argv[2] )
-		pass
+		print("""
+	Verify the extracted folder for any aditional folders and files referentiated by the files, like /CSS /Images. Copy them to the equivalent directory in the new book folder.
+		""")
 	else:
 		print("""
 	main.py HTML_FILES_PATH NEW_BOOK_PATH
