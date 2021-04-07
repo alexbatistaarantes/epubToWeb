@@ -48,7 +48,10 @@ class WebBook():
 				for index in range(0, len(contentPaths)-1):
 					temp_path = path.join(temp_path, contentPaths[index] )
 					self.createFolder( temp_path )
-			copy( path.join( bookRelativePath, contentPath ), path.join(bookContentAbsPath, contentPath ))
+			try:
+				copy( path.join( bookRelativePath, contentPath ), path.join(bookContentAbsPath, contentPath ))
+			except:
+				print( f"'{contentPath}' couldn't be coppied" )
 	
 	# Getting the bookIndex.html content
 		with open( path.join(__location__, 'bookIndex.html'), 'r' ) as temp_bookIndex:
