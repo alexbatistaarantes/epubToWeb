@@ -5,6 +5,8 @@
 convert an epub file to a 'website'
 converte um arquivo epub para um 'site'
 
+![an example](https://user-images.githubusercontent.com/30227872/113874322-0fba1100-978c-11eb-87e8-16a2a0e3f6b5.png)
+
 $ ./main.py FILE.epub WEB_BOOK_FOLDER
 ./main.py ARQUIVO.epub PASTA_DO_WEB_BOOK
 
