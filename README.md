@@ -12,6 +12,7 @@ bookContent/ : os arquivos do epub
 
 extractedEpub/ : pasta aonde o conteudo do arquivo foi extraido
 
+
 [eng]
 converts an epub file to a 'website'
 
