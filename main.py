@@ -43,10 +43,11 @@ class WebBook():
 		for contentId in self.epubContentsInfos['other'].keys():
 			contentPath = self.epubContentsInfos['other'][ contentId ]
 			contentPaths = contentPath.split('/')
-			if( len(contentPaths) > 0 ):
+			if( len(contentPaths) > 1):
 				temp_path = bookContentAbsPath
 				for index in range(0, len(contentPaths)-1):
-					self.createFolder( path.join( temp_path, contentPaths[ index ]) )
+					temp_path = path.join(temp_path, contentPaths[index] )
+					self.createFolder( temp_path )
 			copy( path.join( bookRelativePath, contentPath ), path.join(bookContentAbsPath, contentPath ))
 	
 	# Getting the bookIndex.html content
@@ -63,7 +64,8 @@ class WebBook():
 			if( len(contentPaths) > 0 ):
 				temp_path = bookContentAbsPath
 				for index in range(0, len(contentPaths)-1):
-					self.createFolder( path.join( temp_path, contentPaths[ index ]) )
+					temp_path = path.join( temp_path, contentPaths[ index ])
+					self.createFolder( temp_path )
 		# Creating the soup object for the content
 			with open(path.join(bookRelativePath, contentPath), 'r') as temp_contentFile:
 				contentSoup = BeautifulSoup( temp_contentFile.read(), 'html.parser' )
