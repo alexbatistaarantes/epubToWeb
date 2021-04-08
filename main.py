@@ -9,6 +9,12 @@ from shutil import copy
 
 __location__ = path.realpath( path.join( getcwd(), path.dirname(__file__) ) )
 
+BOOK_MAIN_FILE_NAME = 'book.html'
+BOOK_INDEX_FILE_NAME = 'bookIndex.html'
+BOOK_CONTENT_FOLDER_NAME = 'bookContent'
+EXTRACTED_EPUB_FOLDER_NAME = 'extractedEpub'
+
+
 class WebBook():
 	
 	def __init__(self, epubAbsPath, webBookAbsPath):
@@ -19,25 +25,23 @@ class WebBook():
 		self.createFolder( webBookAbsPath )
 		self.absPath = webBookAbsPath
 	# Creating the folder where the book contents will be
-		self.bookContentFolderName = 'bookContent'
-		self.createFolder( path.join(self.absPath, self.bookContentFolderName) )
+		self.createFolder( path.join(self.absPath, BOOK_CONTENT_FOLDER_NAME) )
 	# Creating temporary folder inside web book folder to extract epub files
-		extractedEpubFolderName = 'extractedEpub'
-		self.createFolder( path.join(self.absPath, extractedEpubFolderName) )
+		self.createFolder( path.join(self.absPath, EXTRACTED_EPUB_FOLDER_NAME) )
 	# Extracting epub files
-		self.extractEpub( self.epub, path.join(self.absPath, extractedEpubFolderName) )
+		self.extractEpub( self.epub, path.join(self.absPath, EXTRACTED_EPUB_FOLDER_NAME) )
 	# Getting tree of files from epub
-		self.epubTree = self.createTreeOfContent( path.join(self.absPath, extractedEpubFolderName) )
+		self.epubTree = self.createTreeOfContent( path.join(self.absPath, EXTRACTED_EPUB_FOLDER_NAME) )
 	# Getting paths (relatives to the content.opf folder where found) from every item
 		self.epubContentsInfos, self.epubSpineIds = self.loadInfoFromContentOpf()
 	# Copying book.html to web book
-		copy( path.join(__location__, 'book.html'), self.absPath )
+		copy(path.join(__location__, BOOK_MAIN_FILE_NAME), self.absPath)
 
 		self.copyEpubContent()
 
 	def copyEpubContent(self):
 		bookRelativePath = self.contentOpfInfos[0]
-		bookContentAbsPath = path.join( self.absPath, self.bookContentFolderName )
+		bookContentAbsPath = path.join( self.absPath, BOOK_CONTENT_FOLDER_NAME )
 		
 	# Copying contents that are not from the spine
 		for contentId in self.epubContentsInfos['other'].keys():
@@ -54,9 +58,9 @@ class WebBook():
 				print( f"'{contentPath}' couldn't be coppied" )
 	
 	# Getting the bookIndex.html content
-		with open( path.join(__location__, 'bookIndex.html'), 'r' ) as temp_bookIndex:
+		with open(path.join(__location__, BOOK_INDEX_FILE_NAME), 'r') as temp_bookIndex:
 			bookIndexSoup = BeautifulSoup( temp_bookIndex.read(), 'html.parser')
-		bookContentsAbsPath = path.join( self.absPath, self.bookContentFolderName )
+		bookContentsAbsPath = path.join( self.absPath, BOOK_CONTENT_FOLDER_NAME )
 		
 	# Copying and modifying the spine files
 		for contentSpineIndex in range(0, len(self.epubSpineIds)):
@@ -92,13 +96,13 @@ class WebBook():
 		
 		# Adding content at the book index
 			contentIndexLiTag = bookIndexSoup.new_tag('li')
-			contentIndexLinkTag = bookIndexSoup.new_tag('a', href= path.join(self.bookContentFolderName, contentPath ) )
+			contentIndexLinkTag = bookIndexSoup.new_tag('a', href= path.join(BOOK_CONTENT_FOLDER_NAME, contentPath ) )
 			contentIndexLinkTag.string = contentSoup.find('title').string
 			contentIndexLiTag.append(contentIndexLinkTag)
 			bookIndexSoup.find(id='bookIndexUl').append( contentIndexLiTag )
 
 	# Writing book index content
-		with open( path.join(self.absPath, 'bookIndex.html'), 'w' ) as temp_bookIndex:
+		with open(path.join(self.absPath, BOOK_INDEX_FILE_NAME), 'w') as temp_bookIndex:
 			temp_bookIndex.write( bookIndexSoup.prettify() )
 
 # Add the navigation links
@@ -132,9 +136,9 @@ class WebBook():
 		soup.body.insert_after( scriptFontTag )
 	
 	# Book Index
-		topBookIndexTag = soup.new_tag('a', href= path.join(bookIndexPath, 'bookIndex.html'))
+		topBookIndexTag = soup.new_tag('a', href= path.join(bookIndexPath, BOOK_INDEX_FILE_NAME))
 		topBookIndexTag.string = 'Book Index'
-		bottomBookIndexTag = soup.new_tag('a', href= path.join(bookIndexPath, 'bookIndex.html'))
+		bottomBookIndexTag = soup.new_tag('a', href= path.join(bookIndexPath, BOOK_INDEX_FILE_NAME))
 		bottomBookIndexTag.string = 'Book Index'
 		soup.body.find(id='topNavigationDiv').append(topBookIndexTag)
 		soup.body.find(id='bottomNavigationDiv').append(bottomBookIndexTag)
@@ -220,11 +224,14 @@ class WebBook():
 				scanFileAbsPath = path.join( absPath, scanFile.name )
 				tree[scanFile.name] = self.createTreeOfContent( scanFileAbsPath )
 		return tree
+
 	def extractEpub(self, epub, extractedEpubAbsPath ):
 		epub.extractall( extractedEpubAbsPath )
+
 	def loadEpub(self, epubAbsPath ):
 		epub = ZipFile( epubAbsPath )
 		return epub
+
 	def createFolder(self, path):
 		try:
 			mkdir( path )
