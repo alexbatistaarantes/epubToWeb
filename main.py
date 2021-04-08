@@ -88,7 +88,7 @@ class WebBook():
 		# Modifying the content Html
 			contentSoup = self.addContainers( contentSoup, bookIndexPath, previousHref, nextHref )
 			with open(path.join(bookContentsAbsPath, contentPath), 'w') as temp_contentFile:
-				temp_contentFile.write( contentSoup.prettify() )
+				temp_contentFile.write( str(contentSoup) )
 		
 		# Adding content at the book index
 			contentIndexLiTag = bookIndexSoup.new_tag('li')
