@@ -29,6 +29,17 @@
 		height += size;
 		document.getElementById('book').style.height = height.toString() + 'px';
 	}
+	document.onkeydown = function(e){
+		if(e.ctrlKey && e.altKey && e.which == 87){
+		    increaseWidth(50);
+		}else if(!e.ctrlKey && !e.altKey && e.which == 87){
+		    increaseWidth(-50);
+		}else if(e.ctrlKey && e.altKey && e.which == 72){
+		    increaseHeight(50);
+		}else if(!e.ctrlKey && !e.altKey && e.which == 72){
+		    increaseHeight(-50);
+        	}
+    	}
 </script>
 
 <style>
