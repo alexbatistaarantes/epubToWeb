@@ -132,6 +132,11 @@ class WebBook():
 		size += parseInt(window.getComputedStyle(body)['font-size']);
 		body.style.fontSize = size.toString() + 'px';
 	}
+
+	function increaseFont_shortcut(e){
+		increaseFont(e.data);
+	}
+	window.addEventListener("message", increaseFont_shortcut, false);
 		"""
 		soup.body.insert_after( scriptFontTag )
 	

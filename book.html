@@ -30,16 +30,22 @@
 		document.getElementById('book').style.height = height.toString() + 'px';
 	}
 	document.onkeydown = function(e){
-		if(e.ctrlKey && e.altKey && e.which == 87){
+		if(e.ctrlKey && e.altKey && e.which == 87){ // ctrl alt w
 		    increaseWidth(50);
-		}else if(!e.ctrlKey && !e.altKey && e.which == 87){
+		}else if(!e.ctrlKey && !e.altKey && e.which == 87){ // w
 		    increaseWidth(-50);
-		}else if(e.ctrlKey && e.altKey && e.which == 72){
+		}else if(e.ctrlKey && e.altKey && e.which == 72){ // ctrl alt h
 		    increaseHeight(50);
-		}else if(!e.ctrlKey && !e.altKey && e.which == 72){
+		}else if(!e.ctrlKey && !e.altKey && e.which == 72){ // h
 		    increaseHeight(-50);
-        	}
-    	}
+        }else if(e.ctrlKey && e.altKey && e.which == 70){ //ctrl alt f
+			// decrease font
+			document.getElementsByTagName('iframe')[0].contentWindow.postMessage(-5,"*");
+		}else if(e.ctrlKey && e.altKey && e.which == 71){ // ctrl alt g
+			// increase font
+			document.getElementsByTagName('iframe')[0].contentWindow.postMessage(5,"*");
+		}
+    }
 </script>
 
 <style>
