@@ -5,7 +5,9 @@ from sys import argv
 from bs4 import BeautifulSoup
 from zipfile import ZipFile
 import xml.etree.ElementTree as ET
-from shutil import copy
+from shutil import copy, rmtree
+
+from functions import *
 
 __location__ = path.realpath( path.join( getcwd(), path.dirname(__file__) ) )
 
@@ -17,93 +19,101 @@ FAVICON_FILE_NAME = 'favicon.png'
 
 class WebBook():
 	
-	def __init__(self, epubAbsPath, webBookAbsPath):
-	
-	# Loading file epub before creating folder
-		self.epub = self.loadEpub( epubAbsPath )
-	# Creating web book folder
-		self.createFolder( webBookAbsPath )
+	# self.
+	#	epub: epub file
+	#	absPath: absolute path of the web book
+	#	bookContentAbsPath: absolute path of the book content folder inside the web book folder
+	#	extractedEpubAbsPath: absolute path of the extracted epub content inside the web book folder
+	#
+
+	def __init__(self, epubFileAbsPath, webBookAbsPath):
+		
+		# Loading epub file / verifying path is valid
+		try:
+			self.epub = loadEpub( epubFileAbsPath )
+		except:
+			raise
+
+		# Defining paths of folders of the webBook
 		self.absPath = webBookAbsPath
-	# Creating the folder where the book contents will be
-		self.createFolder( path.join(self.absPath, BOOK_CONTENT_FOLDER_NAME) )
-	# Creating temporary folder inside web book folder to extract epub files
-		self.createFolder( path.join(self.absPath, EXTRACTED_EPUB_FOLDER_NAME) )
-	# Extracting epub files
-		self.extractEpub( self.epub, path.join(self.absPath, EXTRACTED_EPUB_FOLDER_NAME) )
-	# Getting tree of files from epub
-		self.epubTree = self.createTreeOfContent( path.join(self.absPath, EXTRACTED_EPUB_FOLDER_NAME) )
-	# Getting paths (relatives to the content.opf folder where found) from every item
-		self.epubContentsInfos, self.epubSpineIds = self.loadInfoFromContentOpf()
-	# Copying book.html to web book
+		self.bookContentAbsPath = path.join( self.absPath, BOOK_CONTENT_FOLDER_NAME )
+		self.extractedEpubAbsPath = path.join( self.absPath, EXTRACTED_EPUB_FOLDER_NAME )
+		# Creating root folders
+		try:
+			createFolder( self.absPath )
+		except:
+			raise
+		createFolder( self.bookContentAbsPath )
+		createFolder( self.extractedEpubAbsPath )
+		
+		# Extracting epub files
+		try:
+			extractEpub( self.epub, self.extractedEpubAbsPath )
+		except:
+			deleteFolder( self.absPath )
+			raise
+
+		# Coppying the content of the extracted epub to the web book folder, and getting list of all the files
+		self.filesAbsPathList = copyFolderRecursively( self.extractedEpubAbsPath, self.bookContentAbsPath )
+		
+		# Getting the spine
+		ncxFileAbsPath = findFileByExtension( self.filesAbsPathList, '.ncx')
+		with open( ncxFileAbsPath, 'r') as ncxFile:
+			self.spine = getSpineFromNcx( ncxFile.read() )
+
+		# Getting paths (relatives to the content.opf folder where found) from every item
+		##	self.epubContentsInfos, self.epubSpineIds = self.loadInfoFromContentOpf()
+		
+		# Copying book.html to web book
 		copy( path.join(__location__, BOOK_MAIN_FILE_NAME), self.absPath )
+		copy( path.join(__location__, BOOK_INDEX_FILE_NAME), self.absPath )
 		copy( path.join(__location__, FAVICON_FILE_NAME), self.absPath )
-
-		self.copyEpubContent()
-
-	def copyEpubContent(self):
-		bookRelativePath = self.contentOpfInfos[0]
-		bookContentAbsPath = path.join( self.absPath, BOOK_CONTENT_FOLDER_NAME )
 		
-	# Copying contents that are not from the spine
-		for contentId in self.epubContentsInfos['other'].keys():
-			contentPath = self.epubContentsInfos['other'][ contentId ]
-			contentPaths = contentPath.split('/')
-			if( len(contentPaths) > 1):
-				temp_path = bookContentAbsPath
-				for index in range(0, len(contentPaths)-1):
-					temp_path = path.join(temp_path, contentPaths[index] )
-					self.createFolder( temp_path )
-			try:
-				copy( path.join( bookRelativePath, contentPath ), path.join(bookContentAbsPath, contentPath ))
-			except:
-				print( f"'{contentPath}' couldn't be coppied" )
-	
-	# Getting the bookIndex.html content
-		with open(path.join(__location__, BOOK_INDEX_FILE_NAME), 'r') as temp_bookIndex:
+		self.modifyContent( getRelativePath( self.absPath+'/', path.split(ncxFileAbsPath)[0]), path.split(ncxFileAbsPath)[0] )
+
+	def modifyContent(self, ncxRelPath, ncxAbsPath):
+
+		# Getting the bookIndex.html content
+		bookIndexAbsPath = path.join( self.absPath, BOOK_INDEX_FILE_NAME )
+		with open( bookIndexAbsPath, 'r') as temp_bookIndex:
 			bookIndexSoup = BeautifulSoup( temp_bookIndex.read(), 'html.parser')
-		bookContentsAbsPath = path.join( self.absPath, BOOK_CONTENT_FOLDER_NAME )
 		
-	# Copying and modifying the spine files
-		for contentSpineIndex in range(0, len(self.epubSpineIds)):
-			contentId = self.epubSpineIds[ contentSpineIndex ]
-			contentPath = self.epubContentsInfos['xhtml'][ contentId ]
-			contentPaths = contentPath.split('/')
-		# Creating folders
-			if( len(contentPaths) > 0 ):
-				temp_path = bookContentAbsPath
-				for index in range(0, len(contentPaths)-1):
-					temp_path = path.join( temp_path, contentPaths[ index ])
-					self.createFolder( temp_path )
-		# Creating the soup object for the content
-			with open(path.join(bookRelativePath, contentPath), 'r') as temp_contentFile:
+		# Copying and modifying the spine files
+		for spineIndex in range(0, len(self.spine)):
+			
+			contentTitle = self.spine[ spineIndex ][0]
+			contentRelPath = self.spine[ spineIndex ][1]
+			contentAbsPath = path.join( ncxAbsPath, contentRelPath )
+
+			# Creating the soup object for the content
+			with open( contentAbsPath, 'r') as temp_contentFile:
 				contentSoup = BeautifulSoup( temp_contentFile.read(), 'html.parser' )
 			
-		# Getting href for navigations links
-			previousHref = ''
-			nexttHref = ''
-			if( contentSpineIndex-1 >= 0 ):
-				previousHref = self.epubContentsInfos['xhtml'][ self.epubSpineIds[ contentSpineIndex-1] ]
-				previousHref = self.getRelativePath( contentPath, previousHref )
-			if( contentSpineIndex+1 < len(self.epubSpineIds) ):
-				nextHref = self.epubContentsInfos['xhtml'][ self.epubSpineIds[ contentSpineIndex+1] ]
-				nextHref = self.getRelativePath( contentPath, nextHref )
-			bookIndexPath = ''
-			for i in contentPaths: bookIndexPath += '../'
+			# Getting paths for navigations links
+			previousContentRelPath = ''
+			nextContentRelPath = ''
+			if( spineIndex - 1 >= 0 ):
+				previousContent = self.spine[ spineIndex - 1 ][1]
+				previousContentRelPath = getRelativePath( contentRelPath, previousContent )
+			if( spineIndex + 1 < len(self.spine) ):
+				nextContent = self.spine[ spineIndex + 1 ][1]
+				nextContentRelPath = getRelativePath( contentRelPath, nextContent )
+			bookIndexRelPath = getRelativePath( contentAbsPath, bookIndexAbsPath )
 
-		# Modifying the content Html
-			contentSoup = self.addContainers( contentSoup, bookIndexPath, previousHref, nextHref )
-			with open(path.join(bookContentsAbsPath, contentPath), 'w') as temp_contentFile:
+			# Modifying the content Html
+			contentSoup = self.addContainers( contentSoup, bookIndexRelPath, previousContentRelPath, nextContentRelPath )
+			with open( contentAbsPath, 'w') as temp_contentFile:
 				temp_contentFile.write( str(contentSoup) )
 		
-		# Adding content at the book index
+			# Adding content at the book index
 			contentIndexLiTag = bookIndexSoup.new_tag('li')
-			contentIndexLinkTag = bookIndexSoup.new_tag('a', href= path.join(BOOK_CONTENT_FOLDER_NAME, contentPath ) )
-			contentIndexLinkTag.string = contentSoup.find('title').string
+			contentIndexLinkTag = bookIndexSoup.new_tag('a', href= path.join(ncxRelPath, contentRelPath ) )
+			contentIndexLinkTag.string = contentTitle
 			contentIndexLiTag.append(contentIndexLinkTag)
 			bookIndexSoup.find(id='bookIndexUl').append( contentIndexLiTag )
 
 	# Writing book index content
-		with open(path.join(self.absPath, BOOK_INDEX_FILE_NAME), 'w') as temp_bookIndex:
+		with open( bookIndexAbsPath, 'w') as temp_bookIndex:
 			temp_bookIndex.write( bookIndexSoup.prettify() )
 
 # Add the navigation links
@@ -142,9 +152,9 @@ class WebBook():
 		soup.body.insert_after( scriptFontTag )
 	
 	# Book Index
-		topBookIndexTag = soup.new_tag('a', href= path.join(bookIndexPath, BOOK_INDEX_FILE_NAME))
+		topBookIndexTag = soup.new_tag('a', href=bookIndexPath)
 		topBookIndexTag.string = 'Book Index'
-		bottomBookIndexTag = soup.new_tag('a', href= path.join(bookIndexPath, BOOK_INDEX_FILE_NAME))
+		bottomBookIndexTag = soup.new_tag('a', href=bookIndexPath)
 		bottomBookIndexTag.string = 'Book Index'
 		soup.body.find(id='topNavigationDiv').append(topBookIndexTag)
 		soup.body.find(id='bottomNavigationDiv').append(bottomBookIndexTag)
@@ -168,31 +178,7 @@ class WebBook():
 
 		return soup
 
-# Get the relative path for the first path link the second one
-	def getRelativePath(self, firstPath, secondPath):
-		
-		splittedFirstPath = firstPath.split('/')
-		splittedSecondPath = secondPath.split('/')
-
-		while( len(splittedFirstPath) > 1 ):
-			if splittedFirstPath[0] == splittedSecondPath[0]:
-				del splittedFirstPath[0]
-				del splittedSecondPath[0]
-			else:
-				break
-
-		relativePath = ''
-
-	# Second path is above
-		if len(splittedFirstPath) > 1:
-			for index in range( len(splittedFirstPath) ): relativePath += '../'
-			for folder in splittedSecondPath: relativePath = path.join(relativePath, folder)
-	# Second path is a neighbour or is under the first
-		else:
-			for folder in splittedSecondPath: relativePath = path.join(relativePath, folder)
-
-		return relativePath
-
+"""
 # Returns a dic with the path (relative) to every item. separates xhtml from other types
 	def loadInfoFromContentOpf(self):
 		
@@ -215,43 +201,8 @@ class WebBook():
 			else:
 				epubContentsInfos['other'][ item.attrib['id'] ] = item.attrib['href']
 		return epubContentsInfos, epubSpineIds
+"""
 
-# Creating a dict that represents the tree of content for the extracted epub
-	def createTreeOfContent(self, absPath):
-		tree = {'/':{}}
-		scanDir = scandir(absPath)
-		for scanFile in scanDir:
-			if( scanFile.is_file() ):
-				tree['/'][scanFile.name] = scanFile
-			# Verifying if it's the [content].opf file
-				if( (path.splitext(scanFile.name)[1]).lower() == '.opf' ):
-					self.contentOpfInfos = (absPath, scanFile.name)
-			else:
-				scanFileAbsPath = path.join( absPath, scanFile.name )
-				tree[scanFile.name] = self.createTreeOfContent( scanFileAbsPath )
-		return tree
-
-	def extractEpub(self, epub, extractedEpubAbsPath ):
-		epub.extractall( extractedEpubAbsPath )
-
-	def loadEpub(self, epubAbsPath ):
-		epub = ZipFile( epubAbsPath )
-		return epub
-
-	def createFolder(self, path):
-		try:
-			mkdir( path )
-		except:
-			pass
-
-	def formatData(self,t,s):
-		if not isinstance(t,dict) and not isinstance(t,list):
-			print("\t"*s+str(t))
-		else:
-			for key in t:
-				print("\t"*s+str(key))
-				if not isinstance(t,list):
-					self.formatData(t[key],s+1)
 
 if __name__ == '__main__':
 	WebBook( argv[1], argv[2] )
