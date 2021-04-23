@@ -13,7 +13,7 @@ BOOK_MAIN_FILE_NAME = 'book.html'
 BOOK_INDEX_FILE_NAME = 'bookIndex.html'
 BOOK_CONTENT_FOLDER_NAME = 'bookContent'
 EXTRACTED_EPUB_FOLDER_NAME = 'extractedEpub'
-
+FAVICON_FILE_NAME = 'favicon.png'
 
 class WebBook():
 	
@@ -35,7 +35,8 @@ class WebBook():
 	# Getting paths (relatives to the content.opf folder where found) from every item
 		self.epubContentsInfos, self.epubSpineIds = self.loadInfoFromContentOpf()
 	# Copying book.html to web book
-		copy(path.join(__location__, BOOK_MAIN_FILE_NAME), self.absPath)
+		copy( path.join(__location__, BOOK_MAIN_FILE_NAME), self.absPath )
+		copy( path.join(__location__, FAVICON_FILE_NAME), self.absPath )
 
 		self.copyEpubContent()
 
