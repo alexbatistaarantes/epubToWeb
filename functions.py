@@ -7,7 +7,7 @@ from shutil import copy, rmtree
 
 __location__ = path.realpath( path.join( getcwd(), path.dirname(__file__) ) )
 
-def getSpineFromNcx( ncxContent ):
+def getSpineFromNcx( ncxContent, ncxAbsPath ):
 	# spine is the files and their order that will appear in the book index
 
 	spine = []
@@ -23,22 +23,29 @@ def getSpineFromNcx( ncxContent ):
 		childNavPoints = navPoint.findall('ns:navPoint', ns)
 		if( len(childNavPoints) > 0 ):
 			for navPoint_2 in childNavPoints:
-				pointId = str( navPoint_2.attrib['id'] )
-
+				
 				try: # in case there isn't any content to get the path
 					content = navPoint_2.find('ns:content', ns)
 					pointPath = content.attrib['src']
-					
-					# in cases where the id is appended at the end of the paths
-					pointPath = endsWith( pointPath, '#'+pointId )
 
-					try: # in case there isn't any navLabel or text to get the title
-						navLabel = navPoint_2.find('ns:navLabel', ns)
-						pointTitle = navLabel.find('ns:text', ns).text
-					except:
-						pointTitle = pointPath
+					# some paths may come with appended stuffs at the end, obscuring the real path
+					for index in range( len(pointPath) ):
+						if( path.exists( path.join(ncxAbsPath, pointPath) ) ):
+							break							
+						pointPath = pointPath[0:-1]
 
-					spine.append( [ pointTitle, pointPath ] )
+					if( pointPath != '' ):
+						pointPath = path.split( pointAbsPath )[1]
+						try: # in case there isn't any navLabel or text to get the title
+							navLabel = navPoint_2.find('ns:navLabel', ns)
+							pointTitle = navLabel.find('ns:text', ns).text
+						except:
+							pointTitle = pointPath
+
+						spine.append( [ pointTitle, pointPath ] )
+					else:
+						print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
+
 				except:
 					print( "An exception ocurred and some content could be lost in the book index." )
 		else:
@@ -47,17 +54,24 @@ def getSpineFromNcx( ncxContent ):
 			try: # in case there isn't any content to get the path
 				content = navPoint.find('ns:content', ns)
 				pointPath = content.attrib['src']
-					
-				# in cases where the id is appended at the end of the paths
-				pointPath = endsWith( pointPath, '#'+pointId )
 
-				try: # in case there isn't any navLabel or text to get the title
-					navLabel = navPoint.find('ns:navLabel', ns)
-					pointTitle = navLabel.find('ns:text', ns).text
-				except:
-					pointTitle = pointPath
+				# some paths may come with appended stuffs at the end, obscuring the real path
+				for index in range( len(pointPath) ):
+					if( path.exists( path.join(ncxAbsPath, pointPath) ) ):
+						break							
+					pointPath = pointPath[0:-1]
 
-				spine.append( [ pointTitle, pointPath ] )
+				if( pointPath != '' ):
+					try: # in case there isn't any navLabel or text to get the title
+						navLabel = navPoint.find('ns:navLabel', ns)
+						pointTitle = navLabel.find('ns:text', ns).text
+					except:
+						pointTitle = pointPath
+
+					spine.append( [ pointTitle, pointPath ] )
+				else:
+					print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
+
 			except:
 				print( "An exception ocurred and some content could be lost in the book index." )		
 	return spine

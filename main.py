@@ -59,7 +59,7 @@ class WebBook():
 		# Getting the spine
 		ncxFileAbsPath = findFileByExtension( self.filesAbsPathList, '.ncx')
 		with open( ncxFileAbsPath, 'r') as ncxFile:
-			self.spine = getSpineFromNcx( ncxFile.read() )
+			self.spine = getSpineFromNcx( ncxFile.read(), path.split(ncxFileAbsPath)[0] )
 
 		# Getting paths (relatives to the content.opf folder where found) from every item
 		##	self.epubContentsInfos, self.epubSpineIds = self.loadInfoFromContentOpf()
