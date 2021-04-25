@@ -59,8 +59,12 @@ class WebBook():
 		# Getting the spine
 		ncxFileAbsPath = findFileByExtension( self.filesAbsPathList, '.ncx')
 		with open( ncxFileAbsPath, 'r') as ncxFile:
-			self.spine = getSpineFromNcx( ncxFile.read(), path.split(ncxFileAbsPath)[0] )
-
+			try:
+				self.spine, self.infos = getSpineFromNcx( ncxFile.read(), path.split(ncxFileAbsPath)[0] )
+			except:
+				deleteFolder( self.absPath )
+				raise
+		
 		# Getting paths (relatives to the content.opf folder where found) from every item
 		##	self.epubContentsInfos, self.epubSpineIds = self.loadInfoFromContentOpf()
 		
@@ -69,6 +73,10 @@ class WebBook():
 		copy( path.join(__location__, BOOK_INDEX_FILE_NAME), self.absPath )
 		copy( path.join(__location__, FAVICON_FILE_NAME), self.absPath )
 		
+		# If infos was loaded
+		if( self.infos['title'] != '' ):
+			self.addInfos()
+	
 		self.modifyContent( getRelativePath( self.absPath+'/', path.split(ncxFileAbsPath)[0]), path.split(ncxFileAbsPath)[0] )
 
 	def modifyContent(self, ncxRelPath, ncxAbsPath):
@@ -177,6 +185,16 @@ class WebBook():
 			soup.find(id='bottomNavigationDiv').append(bottomNextTag)
 
 		return soup
+
+	def addInfos(self):
+		bookMainPath = path.join(self.absPath, BOOK_MAIN_FILE_NAME)
+		with open( bookMainPath, 'r' ) as bookFile:
+			bookSoup = BeautifulSoup( bookFile.read(), 'html.parser' )
+		
+		bookSoup.find('title').string = self.infos['title']
+			
+		with open( bookMainPath, 'w' ) as bookFile:
+			bookFile.write( str(bookSoup) )
 
 """
 # Returns a dic with the path (relative) to every item. separates xhtml from other types

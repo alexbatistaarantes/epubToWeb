@@ -7,15 +7,85 @@ from shutil import copy, rmtree
 
 __location__ = path.realpath( path.join( getcwd(), path.dirname(__file__) ) )
 
+def getAllItems( root ):
+	
+	ns = {'ns': root.tag[1:root.tag.find('}')]}
+
+	navMap = root.find('ns:navMap', ns)
+	labels = navMap.findall('.//ns:navLabel', ns)
+	contents = navMap.findall('.//ns:content', ns)
+	
+	if( len(labels) != len(contents )):
+		raise
+	
+	items = []
+	for index in range( len(labels) ):
+		try:
+			path = contents[ index ].attrib['src']
+			title = labels[ index ].find('ns:text', ns).text
+			if( title == None ):
+				title = path
+			items.append( [title, path] )
+		except:
+			print( "An exception ocurred and some content could be lost in the book index." )
+			print("Aborting the execution.")
+
+	return items
+
 def getSpineFromNcx( ncxContent, ncxAbsPath ):
 	# spine is the files and their order that will appear in the book index
-
-	spine = []
-	metadata = {'title':'', 'author':[]}
-
+	
 	root = ET.fromstring( ncxContent )
 	ns = {'ns': root.tag[ 1: root.tag.find('}') ] }
+
+	# trying to load book's infos
+	infos = {'title':'', 'author':''}
+	try:
+		title = root.find('ns:docTitle', ns).find('ns:text', ns).text
+		infos['title'] = title
+		try:
+			author = root.find('ns:docAuthor', ns).find('ns:text', ns).text
+			infos['author'] = author
+		except:
+			print("Book's author could not be loaded.")
+	except:
+		print("Book's title could not be loaded.")
 	
+	try:
+		unverifiedSpine = getAllItems( root )
+	except:
+		print('An error ocurred while reading the .ncx file.')
+		raise
+	
+	# iterating over each item in the spine to verify the path
+	# in some epub there can be extra stuffs at the end and this is removing them
+	spine = []
+	for item in unverifiedSpine:
+		# removing char by char at the end until the path exists or the item path is empty
+		itemPath = item[1]
+		for index in range( len(itemPath) ):
+			if( path.exists( path.join(ncxAbsPath, itemPath) ) ):
+				break
+			itemPath = itemPath[0:-1]
+		
+		if( len(itemPath) > 0 ):
+			item[1] = itemPath
+			spine.append( item )
+		else:
+			print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
+	
+	return spine, infos
+
+### JEITO ANTIGO ABERRACAO ###
+""" 
+	try:
+		title = root.find('ns:docTitle', ns).find('ns:text', ns).text
+		author = root.find('ns:docAuthor', ns).find('ns:text', ns).text
+		infos['title'] = title
+		infos['author'] = author
+	except:
+		print('Infos from the book could not be loaded.')
+
 	navMap = root.find('ns:navMap', ns)
 	for navPoint in navMap.findall('ns:navPoint', ns):
 		
@@ -23,7 +93,7 @@ def getSpineFromNcx( ncxContent, ncxAbsPath ):
 		childNavPoints = navPoint.findall('ns:navPoint', ns)
 		if( len(childNavPoints) > 0 ):
 			for navPoint_2 in childNavPoints:
-				
+			
 				try: # in case there isn't any content to get the path
 					content = navPoint_2.find('ns:content', ns)
 					pointPath = content.attrib['src']
@@ -35,7 +105,6 @@ def getSpineFromNcx( ncxContent, ncxAbsPath ):
 						pointPath = pointPath[0:-1]
 
 					if( pointPath != '' ):
-						pointPath = path.split( pointAbsPath )[1]
 						try: # in case there isn't any navLabel or text to get the title
 							navLabel = navPoint_2.find('ns:navLabel', ns)
 							pointTitle = navLabel.find('ns:text', ns).text
@@ -43,6 +112,7 @@ def getSpineFromNcx( ncxContent, ncxAbsPath ):
 							pointTitle = pointPath
 
 						spine.append( [ pointTitle, pointPath ] )
+						print( navPoint_2, pointPath, pointTitle )
 					else:
 						print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
 
@@ -55,7 +125,7 @@ def getSpineFromNcx( ncxContent, ncxAbsPath ):
 				content = navPoint.find('ns:content', ns)
 				pointPath = content.attrib['src']
 
-				# some paths may come with appended stuffs at the end, obscuring the real path
+				# some paths may come with appended stuffs at the end, obscuring the real path			
 				for index in range( len(pointPath) ):
 					if( path.exists( path.join(ncxAbsPath, pointPath) ) ):
 						break							
@@ -69,12 +139,15 @@ def getSpineFromNcx( ncxContent, ncxAbsPath ):
 						pointTitle = pointPath
 
 					spine.append( [ pointTitle, pointPath ] )
+					print( navPoint, pointPath, pointTitle )
 				else:
 					print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
 
 			except:
-				print( "An exception ocurred and some content could be lost in the book index." )		
-	return spine
+				print( "An exception ocurred and some content could be lost in the book index." )
+
+	return spine, infos
+"""
 
 # if str1 ends with str2, return str1 cutting str2
 def endsWith( str1, str2 ):
