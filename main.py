@@ -57,13 +57,29 @@ class WebBook():
 		self.filesAbsPathList = copyFolderRecursively( self.extractedEpubAbsPath, self.bookContentAbsPath )
 		
 		# Getting the spine
-		ncxFileAbsPath = findFileByExtension( self.filesAbsPathList, '.ncx')
-		with open( ncxFileAbsPath, 'r') as ncxFile:
-			try:
-				self.spine, self.infos = getSpineFromNcx( ncxFile.read(), path.split(ncxFileAbsPath)[0] )
-			except:
-				deleteFolder( self.absPath )
-				raise
+		try:
+			opfFileAbsPath = findFileByExtension( self.filesAbsPathList, '.opf')
+			opfSpine = getSpineFromOpf( opfFileAbsPath )
+		except:
+			print("An error ocurred when reading the opf file.")
+			print("Aborting execution.")
+			deleteFolder( self.absPath )
+		
+		self.spine = opfSpine
+		self.infos = {'title': '', 'author': []}
+
+		# Getting info from ncx file to get titles for paths, if they exist in the ncx
+		try:
+			ncxFileAbsPath = findFileByExtension( self.filesAbsPathList, '.ncx')
+			with open( ncxFileAbsPath, 'r') as ncxFile:
+				ncxSpine, self.infos = getSpineFromNcx( ncxFile.read(), path.split(ncxFileAbsPath)[0] )
+			
+			for spineItem in self.spine:
+				for ncxSpineItem in ncxSpine:
+					if( strStartsWith(ncxSpineItem[1], spineItem[1]) ):
+						spineItem[0] = ncxSpineItem[0]
+		except:
+			self.spine = opfSpine
 		
 		# Getting paths (relatives to the content.opf folder where found) from every item
 		##	self.epubContentsInfos, self.epubSpineIds = self.loadInfoFromContentOpf()

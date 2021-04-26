@@ -7,7 +7,32 @@ from shutil import copy, rmtree
 
 __location__ = path.realpath( path.join( getcwd(), path.dirname(__file__) ) )
 
-def getAllItems( root ):
+def getSpineFromOpf( opfAbsPath ):
+
+	with open( opfAbsPath, 'r' ) as contentOpfFile:
+		root = ET.fromstring( contentOpfFile.read() )
+
+	# Getting and setting the namespace
+	ns = { 'ns': root.tag[1: root.tag.find('}')] }
+	
+	# Getting the manifest items
+	# manifest is the list of all the items (html, images, etc) in the epub
+	manifestObj = root.find('ns:manifest', ns)
+	manifestItems = { item.attrib['id']: item.attrib['href']  for item in manifestObj.findall('ns:item', ns) }
+
+	# Getting spine items refs
+	# spine is the ordered list of ids of the items that compose the book index
+	spineObj = root.find('ns:spine', ns)
+	spineIds = [ item.attrib['idref'] for item in spineObj.findall('ns:itemref', ns) ]
+
+	spine = []
+	for itemId in spineIds:
+		itemPath = manifestItems[ itemId ]
+		spine.append( [itemPath, itemPath] )
+	
+	return spine
+
+def getAllItemsFromNcx( root ):
 	
 	ns = {'ns': root.tag[1:root.tag.find('}')]}
 
@@ -52,7 +77,7 @@ def getSpineFromNcx( ncxContent, ncxAbsPath ):
 		print("Book's title could not be loaded.")
 	
 	try:
-		unverifiedSpine = getAllItems( root )
+		unverifiedSpine = getAllItemsFromNcx( root )
 	except:
 		print('An error ocurred while reading the .ncx file.')
 		raise
@@ -75,79 +100,6 @@ def getSpineFromNcx( ncxContent, ncxAbsPath ):
 			print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
 	
 	return spine, infos
-
-### JEITO ANTIGO ABERRACAO ###
-""" 
-	try:
-		title = root.find('ns:docTitle', ns).find('ns:text', ns).text
-		author = root.find('ns:docAuthor', ns).find('ns:text', ns).text
-		infos['title'] = title
-		infos['author'] = author
-	except:
-		print('Infos from the book could not be loaded.')
-
-	navMap = root.find('ns:navMap', ns)
-	for navPoint in navMap.findall('ns:navPoint', ns):
-		
-		# in cases where there is navpoints inside one another
-		childNavPoints = navPoint.findall('ns:navPoint', ns)
-		if( len(childNavPoints) > 0 ):
-			for navPoint_2 in childNavPoints:
-			
-				try: # in case there isn't any content to get the path
-					content = navPoint_2.find('ns:content', ns)
-					pointPath = content.attrib['src']
-
-					# some paths may come with appended stuffs at the end, obscuring the real path
-					for index in range( len(pointPath) ):
-						if( path.exists( path.join(ncxAbsPath, pointPath) ) ):
-							break							
-						pointPath = pointPath[0:-1]
-
-					if( pointPath != '' ):
-						try: # in case there isn't any navLabel or text to get the title
-							navLabel = navPoint_2.find('ns:navLabel', ns)
-							pointTitle = navLabel.find('ns:text', ns).text
-						except:
-							pointTitle = pointPath
-
-						spine.append( [ pointTitle, pointPath ] )
-						print( navPoint_2, pointPath, pointTitle )
-					else:
-						print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
-
-				except:
-					print( "An exception ocurred and some content could be lost in the book index." )
-		else:
-			pointId = str(navPoint.attrib['id'])
-
-			try: # in case there isn't any content to get the path
-				content = navPoint.find('ns:content', ns)
-				pointPath = content.attrib['src']
-
-				# some paths may come with appended stuffs at the end, obscuring the real path			
-				for index in range( len(pointPath) ):
-					if( path.exists( path.join(ncxAbsPath, pointPath) ) ):
-						break							
-					pointPath = pointPath[0:-1]
-
-				if( pointPath != '' ):
-					try: # in case there isn't any navLabel or text to get the title
-						navLabel = navPoint.find('ns:navLabel', ns)
-						pointTitle = navLabel.find('ns:text', ns).text
-					except:
-						pointTitle = pointPath
-
-					spine.append( [ pointTitle, pointPath ] )
-					print( navPoint, pointPath, pointTitle )
-				else:
-					print("Errors ocurred with {} file and will not be in the spine.".format(content.attrib['src']))
-
-			except:
-				print( "An exception ocurred and some content could be lost in the book index." )
-
-	return spine, infos
-"""
 
 # if str1 ends with str2, return str1 cutting str2
 def endsWith( str1, str2 ):
@@ -242,6 +194,13 @@ def getTreeOfContent(self, absPath):
 	return tree
 """
 
+def strStartsWith( str1, str2 ):
+	
+	for charIndex in range( len(str2) ):
+		if( str1[charIndex] != str2[charIndex] ):
+			return False
+	return True
+
 def extractEpub( epub, extractedEpubAbsPath ):
 	try:
 		epub.extractall( extractedEpubAbsPath )
@@ -281,4 +240,4 @@ def formatData(t,s):
 				self.formatData(t[key],s+1)
 
 if __name__ == '__main__':
-	pass
+	print( getSpineFromOpf( '/home/alex/Documents/epubToWeb/content.opf' ) )
