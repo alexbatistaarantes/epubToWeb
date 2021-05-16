@@ -16,6 +16,7 @@ BOOK_INDEX_FILE_NAME = 'bookIndex.html'
 BOOK_CONTENT_FOLDER_NAME = 'bookContent'
 EXTRACTED_EPUB_FOLDER_NAME = 'extractedEpub'
 FAVICON_FILE_NAME = 'favicon.png'
+ITEMS_SCRIPT_FILE_NAME = 'itemsScript.js'
 
 class WebBook():
     
@@ -88,7 +89,8 @@ class WebBook():
         copy( path.join(__location__, BOOK_MAIN_FILE_NAME), self.absPath )
         copy( path.join(__location__, BOOK_INDEX_FILE_NAME), self.absPath )
         copy( path.join(__location__, FAVICON_FILE_NAME), self.absPath )
-        
+        copy( path.join(__location__, ITEMS_SCRIPT_FILE_NAME), self.absPath )
+       
         # If infos was loaded
         if( self.infos['title'] != '' ):
             self.addInfos()
@@ -122,10 +124,10 @@ class WebBook():
             if( spineIndex + 1 < len(self.spine) ):
                 nextContent = self.spine[ spineIndex + 1 ][1]
                 nextContentRelPath = getRelativePath( contentRelPath, nextContent )
-            bookIndexRelPath = getRelativePath( contentAbsPath, bookIndexAbsPath )
-
+            bookRootRelPath = getRelativePath( contentAbsPath, path.join(self.absPath,'') )
+            
             # Modifying the content Html
-            contentSoup = self.addContainers( contentSoup, bookIndexRelPath, previousContentRelPath, nextContentRelPath )
+            contentSoup = self.addContainers( contentSoup, bookRootRelPath, previousContentRelPath, nextContentRelPath )
             with open( contentAbsPath, 'w') as temp_contentFile:
                 temp_contentFile.write( str(contentSoup) )
         
@@ -141,7 +143,7 @@ class WebBook():
             temp_bookIndex.write( bookIndexSoup.prettify() )
 
 # Add the navigation links
-    def addContainers(self, soup, bookIndexPath, previousHref='', nextHref=''):
+    def addContainers(self, soup, bookRootPath, previousHref='', nextHref=''):
     
     # Divs
         buttonsDivTag = soup.new_tag('div', id='contentButtonDiv', style="position: sticky; top: 0;")
@@ -163,39 +165,15 @@ class WebBook():
         soup.body.find(id='contentButtonDiv').append( buttonDecreaseFontTag )
         soup.body.find(id='contentButtonDiv').append( buttonShiftThemeTag )
         
-        scriptFontTag = soup.new_tag('script', type='text/javascript')
-        scriptFontTag.string = """
-    function shiftTheme(){
-        var button = document.getElementById('shiftTheme_button');
-        switch( button.value ){
-            case 'dark':
-                var bg = 'black';
-                var fg = 'white';
-                button.value = 'light';
-                break;
-             case 'light':
-                var bg = '';
-                var fg = '';
-                button.value = 'dark';
-                break;
-        }
-        document.body.style.backgroundColor = bg;
-        document.body.style.color = fg;
-    }
-    function increaseFont(size){
-        var body = document.getElementsByTagName('body')[0];
-        size += parseInt(window.getComputedStyle(body)['font-size']);
-        body.style.fontSize = size.toString() + 'px';
-    }
-
-    function increaseFont_shortcut(e){
-        increaseFont(e.data);
-    }
-    window.addEventListener("message", increaseFont_shortcut, false);
-        """
-        soup.body.insert_after( scriptFontTag )
+        scriptPath = path.join(bookRootPath, ITEMS_SCRIPT_FILE_NAME)
+        scriptLinkTag = soup.new_tag('script', type='text/javascript', src=scriptPath)
+        soup.head.append( scriptLinkTag )
+        
+    # Navigation Links
         linksStyle = 'margin-right: 5px;'
+
     # Book Index
+        bookIndexPath = path.join(bookRootPath, BOOK_INDEX_FILE_NAME)
         topBookIndexTag = soup.new_tag('a', href=bookIndexPath, style=linksStyle)
         topBookIndexTag.string = 'Book Index'
         bottomBookIndexTag = soup.new_tag('a', href=bookIndexPath, style=linksStyle)

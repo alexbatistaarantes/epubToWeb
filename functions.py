@@ -240,4 +240,5 @@ def formatData(t,s):
                 self.formatData(t[key],s+1)
 
 if __name__ == '__main__':
-    print( getSpineFromOpf( '/home/alex/Documents/epubToWeb/content.opf' ) )
+    # print( getSpineFromOpf( '/home/alex/Documents/epubToWeb/content.opf' ) )
+    print( getRelativePath( '/dir1/dir2/file1.html', '/') )
