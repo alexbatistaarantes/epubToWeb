@@ -20,6 +20,8 @@
 </body>
 
 <script type="text/javascript">
+    
+    document.getElementById('book').focus();
 
 	/*
      * IFRAME SIZE
@@ -54,6 +56,11 @@
 	    document.getElementsByTagName('iframe')[0].contentWindow.postMessage("shiftTheme","*");
     }
 
+    function previousPage(){ document.getElementsByTagName('iframe')[0].contentWindow.postMessage("previousPage","*"); }
+    function nextPage(){ document.getElementsByTagName('iframe')[0].contentWindow.postMessage("nextPage","*"); }
+
+    
+
     // Handle shortcuts
     // e.which is used instead of e.key so letters capitalized or not can be used
 	document.onkeydown = function(e){
@@ -77,6 +84,10 @@
                     increaseFont(); break;
                 case 84: // t
                     shiftTheme(); break;
+                case 188: // ,
+                    previousPage(); break;
+                case 190: // .
+                    nextPage(); break;
                 default: break;
             }           
         }

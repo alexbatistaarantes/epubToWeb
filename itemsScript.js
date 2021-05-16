@@ -29,6 +29,9 @@ function decreaseWidth(){ parent.postMessage("-w", "*"); }
 function increaseHeight(){ parent.postMessage("+h", "*"); }
 function decreaseHeight(){ parent.postMessage("-h", "*"); }
 
+function previousPage(){ document.getElementById('previousLink').click(); }
+function nextPage(){ document.getElementById('nextLink').click(); }
+
 // Handle shortcuts
 // e.which is used instead of e.key so letters capitalized or not can be used
 document.onkeydown = function(e){
@@ -52,6 +55,10 @@ document.onkeydown = function(e){
                 increaseFont(); break;
             case 84: // t
                 shiftTheme(); break;
+            case 188: // ,
+                previousPage(); break;
+            case 190: // .
+                nextPage(); break;
             default: break;
         }           
     }
@@ -63,6 +70,8 @@ function handleMessage( messageObj ){
         case 'increaseFont': increaseFont(); break;
         case 'decreaseFont': decreaseFont(); break;
         case 'shiftTheme': shiftTheme(); break;
+        case 'previousPage': previousPage(); break;
+        case 'nextPage': nextPage(); break;
         default: break;
     }
 }

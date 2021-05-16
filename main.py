@@ -183,7 +183,7 @@ class WebBook():
 
     # Previous
         if( previousHref != '' ):
-            topPreviousTag = soup.new_tag('a', href=previousHref, style=linksStyle)
+            topPreviousTag = soup.new_tag('a', attrs={'id':'previousLink', 'href':previousHref, 'style':linksStyle} )
             topPreviousTag.string = 'Previous'
             bottomPreviousTag = soup.new_tag('a', href=previousHref, style=linksStyle)
             bottomPreviousTag.string = "Previous"
@@ -191,7 +191,7 @@ class WebBook():
             soup.find(id='bottomNavigationDiv').append(bottomPreviousTag)
     # Next
         if( nextHref != '' ):
-            topNextTag = soup.new_tag('a', href=nextHref, style=linksStyle)
+            topNextTag = soup.new_tag('a', attrs={'id':'nextLink', 'href':nextHref, 'style':linksStyle} )
             topNextTag.string = 'Next'
             bottomNextTag = soup.new_tag('a', href=nextHref, style=linksStyle)
             bottomNextTag.string = "Next"
@@ -209,31 +209,6 @@ class WebBook():
             
         with open( bookMainPath, 'w' ) as bookFile:
             bookFile.write( str(bookSoup) )
-
-"""
-# Returns a dic with the path (relative) to every item. separates xhtml from other types
-    def loadInfoFromContentOpf(self):
-        
-        contentOpfFile = open( path.join(self.contentOpfInfos[0], self.contentOpfInfos[1]) )
-        root = ET.fromstring( contentOpfFile.read() )
-    # Getting and setting the namespace
-        ns = {'ns': root.tag[1: root.tag.find('}')]}
-    # Getting the manifest items
-        manifest = root.find('ns:manifest', ns)
-        epubContentItems = manifest.findall('ns:item', ns)
-    # Getting spine items refs
-        spine = root.find('ns:spine', ns)
-        epubSpineIds = [ item.attrib['idref'] for item in spine.findall('ns:itemref', ns) ]
-
-    # Getting the path (href) to every item
-        epubContentsInfos = {'xhtml': {}, 'other': {}}
-        for item in epubContentItems:
-            if( item.attrib['media-type'] == 'application/xhtml+xml' and item.attrib['id'] in epubSpineIds):
-                epubContentsInfos['xhtml'][ item.attrib['id'] ] = item.attrib['href']
-            else:
-                epubContentsInfos['other'][ item.attrib['id'] ] = item.attrib['href']
-        return epubContentsInfos, epubSpineIds
-"""
 
 
 if __name__ == '__main__':
