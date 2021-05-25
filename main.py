@@ -133,7 +133,7 @@ class WebBook():
         
             # Adding content at the book index
             contentIndexLiTag = bookIndexSoup.new_tag('li')
-            contentIndexLinkTag = bookIndexSoup.new_tag('a', href= path.join(ncxRelPath, contentRelPath ) )
+            contentIndexLinkTag = bookIndexSoup.new_tag('a', attrs={'class':'navLink', 'href':path.join(ncxRelPath, contentRelPath ), 'value':path.join(ncxRelPath, contentRelPath) } )
             contentIndexLinkTag.string = contentTitle
             contentIndexLiTag.append(contentIndexLinkTag)
             bookIndexSoup.find(id='bookIndexUl').append( contentIndexLiTag )
@@ -174,28 +174,31 @@ class WebBook():
 
     # Book Index
         bookIndexPath = path.join(bookRootPath, BOOK_INDEX_FILE_NAME)
-        topBookIndexTag = soup.new_tag('a', href=bookIndexPath, style=linksStyle)
+        topBookIndexTag = soup.new_tag('a', attrs={'class':'bookIndexLink navLink', 'href':bookIndexPath, 'value':bookIndexPath, 'style':linksStyle} )
         topBookIndexTag.string = 'Book Index'
-        bottomBookIndexTag = soup.new_tag('a', href=bookIndexPath, style=linksStyle)
+        bottomBookIndexTag = soup.new_tag('a', attrs={'class':'bookIndexLink navLink', 'href':bookIndexPath, 'value':bookIndexPath, 'style':linksStyle} )
         bottomBookIndexTag.string = 'Book Index'
         soup.body.find(id='topNavigationDiv').append(topBookIndexTag)
         soup.body.find(id='bottomNavigationDiv').append(bottomBookIndexTag)
 
     # Previous
         if( previousHref != '' ):
-            topPreviousTag = soup.new_tag('a', attrs={'id':'previousLink', 'href':previousHref, 'style':linksStyle} )
+            topPreviousTag = soup.new_tag('a', attrs={'class':'previousPageLink navLink', 'href':previousHref, 'value': previousHref, 'style':linksStyle} )
             topPreviousTag.string = 'Previous'
-            bottomPreviousTag = soup.new_tag('a', href=previousHref, style=linksStyle)
-            bottomPreviousTag.string = "Previous"
             soup.find(id='topNavigationDiv').append(topPreviousTag)
+
+            bottomPreviousTag = soup.new_tag('a', attrs={'class':'previousPageLink navLink', 'href':previousHref, 'value':previousHref, 'style':linksStyle} )
+            bottomPreviousTag.string = "Previous"
             soup.find(id='bottomNavigationDiv').append(bottomPreviousTag)
+
     # Next
         if( nextHref != '' ):
-            topNextTag = soup.new_tag('a', attrs={'id':'nextLink', 'href':nextHref, 'style':linksStyle} )
+            topNextTag = soup.new_tag('a', attrs={'class':'nextPageLink navLink', 'href':nextHref, 'value':nextHref, 'style':linksStyle} )
             topNextTag.string = 'Next'
-            bottomNextTag = soup.new_tag('a', href=nextHref, style=linksStyle)
-            bottomNextTag.string = "Next"
             soup.find(id='topNavigationDiv').append(topNextTag)
+
+            bottomNextTag = soup.new_tag('a', attrs={'class':'nexPagetLink navLink', 'href':nextHref, 'value':nextHref, 'style':linksStyle} )
+            bottomNextTag.string = "Next"
             soup.find(id='bottomNavigationDiv').append(bottomNextTag)
 
         return soup

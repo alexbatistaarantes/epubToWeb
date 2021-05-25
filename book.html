@@ -23,11 +23,8 @@
     
     document.getElementById('book').focus();
 
-	/*
-     * IFRAME SIZE
-    */
+	// IFRAME SIZE FUNCTIONS
     var DEFAULT_INCREASE_IFRAME_SIZE = 50;
-    
 	function increaseWidth(size = DEFAULT_INCREASE_IFRAME_SIZE){
 		var width = document.getElementById('book').clientWidth;
 		width += size;
@@ -41,9 +38,7 @@
 	}
     function decreaseHeight(size = DEFAULT_INCREASE_IFRAME_SIZE){ increaseHeight( size * -1); }
     
-    /* 
-     * FONT SIZE FUNCTIONS
-    */
+    // FONT SIZE FUNCTIONS
     function increaseFont(){
 	    document.getElementsByTagName('iframe')[0].contentWindow.postMessage("increaseFont","*");
     }
@@ -56,10 +51,10 @@
 	    document.getElementsByTagName('iframe')[0].contentWindow.postMessage("shiftTheme","*");
     }
 
-    function previousPage(){ document.getElementsByTagName('iframe')[0].contentWindow.postMessage("previousPage","*"); }
-    function nextPage(){ document.getElementsByTagName('iframe')[0].contentWindow.postMessage("nextPage","*"); }
-
-    
+    // NAVIGATION FUNCTIONS
+    function previousPage(){ document.getElementsByTagName('iframe')[0].contentWindow.postMessage("goToBookIndex","*"); }
+    function previousPage(){ document.getElementsByTagName('iframe')[0].contentWindow.postMessage("goToPreviousPage","*"); }
+    function nextPage(){ document.getElementsByTagName('iframe')[0].contentWindow.postMessage("goToNextPage","*"); }
 
     // Handle shortcuts
     // e.which is used instead of e.key so letters capitalized or not can be used
@@ -84,10 +79,12 @@
                     increaseFont(); break;
                 case 84: // t
                     shiftTheme(); break;
+                case 73: // i
+                    goToBookIndex(); break;
                 case 188: // ,
-                    previousPage(); break;
+                    goToPreviousPage(); break;
                 case 190: // .
-                    nextPage(); break;
+                    goToNextPage(); break;
                 default: break;
             }           
         }
@@ -96,11 +93,14 @@
     // Handle message received from the iFrame
     function handleMessage( messageObj ){
         var message = messageObj.data;
-        switch( message ){
+        var functionCall = message.split(' ')[0];
+        try{ var content = message.split(' ').slice(1).join(' '); }catch { var content = ''; }
+        switch( functionCall ){
             case '+w': increaseWidth(); break;
             case '-w': decreaseWidth(); break;
             case '+h': increaseHeight(); break;
             case '-h': decreaseHeight(); break;
+            case 'console': console.log( content ); break;
             default: break;
         }
     }
