@@ -90,7 +90,8 @@ class WebBook():
         copy( path.join(__location__, BOOK_INDEX_FILE_NAME), self.absPath )
         copy( path.join(__location__, FAVICON_FILE_NAME), self.absPath )
         copy( path.join(__location__, ITEMS_SCRIPT_FILE_NAME), self.absPath )
-       
+        copy( epubFileAbsPath, self.absPath )
+      
         # If infos was loaded
         if( self.infos['title'] != '' ):
             self.addInfos()
