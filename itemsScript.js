@@ -47,6 +47,11 @@ function setTheme( theme ){
     }
     document.body.style.backgroundColor = bg;
     document.body.style.color = fg;
+    
+    var spans = document.getElementsByTagName('span');
+    for(var i = 0; i < spans.length; i++){
+        spans[i].style.color = fg;
+    }
 
     setParametersInLink(theme);
 }
