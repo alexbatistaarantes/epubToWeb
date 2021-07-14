@@ -91,11 +91,7 @@ class WebBook():
         copy( path.join(__location__, FAVICON_FILE_NAME), self.absPath )
         copy( path.join(__location__, ITEMS_SCRIPT_FILE_NAME), self.absPath )
         copy( epubFileAbsPath, self.absPath )
-<<<<<<< HEAD
-
-=======
       
->>>>>>> be5f81f3afdcf6e6b4eccc14dfab26e11e341d44
         # If infos was loaded
         if( self.infos['title'] != '' ):
             self.addInfos()
