@@ -1,11 +1,11 @@
 #!/bin/env python3
 
 from os import path, getcwd, mkdir, scandir, listdir
-from sys import argv
 from bs4 import BeautifulSoup
 from zipfile import ZipFile
 import xml.etree.ElementTree as ET
 from shutil import copy, rmtree
+import argparse
 
 from functions import *
 
@@ -216,8 +216,14 @@ class WebBook():
 
 
 if __name__ == '__main__':
-    epubFilePath = argv[1]
-    webBookPath = argv[2]
+
+    parser = argparse.ArgumentParser( prog = 'epubToWeb' )
+    parser.add_argument( 'epubFile',  help="Defines the path of the epub file." )
+    parser.add_argument( 'webBookFolder',  help="Defines the path of the web book folder." )
+    args = parser.parse_args()
+
+    epubFilePath = args.epubFile #argv[1]
+    webBookPath = args.webBookFolder #argv[2]
     if( webBookPath[-1] == '/' ):
         webBookPath = webBookPath[0:-1]
     WebBook( epubFilePath, webBookPath )

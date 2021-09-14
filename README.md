@@ -17,7 +17,7 @@ pip install -r requirements.txt
 
 Para gerar o web book, execute o comando:
 ```commandline
-python ./main.py ARQUIVO.epub DIRETÓRIO_DO_WEB_BOOK
+python epubToWeb [-h] ARQUIVO.epub DIRETÓRIO_DO_WEB_BOOK
 ```
 
 Os arquivos serão gerados no diretório indicado no comando.
@@ -52,7 +52,8 @@ pip install -r requirements.txt
 
 To generate the web book, run the command:
 ```commandline
-python ./main.py FILE.epub WEB_BOOK_FOLDER
+python epubToWeb [-h] FILE.epub WEB_BOOK_FOLDER
+
 ```
 
 The web book files will be generated in the specified folder/directory.
