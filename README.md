@@ -9,9 +9,9 @@ Converte um arquivo epub para web book local.
 - Pip
 
 # TODO
-## [ ] Remover iframe. O html de cada capítulo será mostrado diretamente
-## [ ] Salvar do localStorage o estado do livro (capitulo, local do scroll, width, fontSize, theme)
-## [ ] Limpar código talvez preguiça
+- [ ] Remover iframe. O html de cada capítulo será mostrado diretamente
+- [ ] Salvar do localStorage o estado do livro (capitulo, local do scroll, width, fontSize, theme)
+- [ ] Limpar código talvez preguiça
 
 #### Como funciona
 
