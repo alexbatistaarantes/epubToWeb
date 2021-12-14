@@ -11,6 +11,7 @@ Converte um arquivo epub para web book local.
 # TODO
 - [ ] Remover iframe. O html de cada capítulo será mostrado diretamente
 - [ ] Salvar do localStorage o estado do livro (capitulo, local do scroll, width, fontSize, theme)
+- [ ] Opção de criar anotações vinculadas a cada capítulo. Salvar no localStorage
 - [ ] Limpar código talvez preguiça
 
 #### Como funciona
